@@ -1,16 +1,16 @@
 {
   "name": "hubot-log-to-pgsql",
   "description": "A hubot script that stores to logs to pgsql",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "author": "Dan Poltawski <dan@moodle.com>",
   "license": "MIT",
   "keywords": "hubot, hubot-scripts",
   "repository": {
     "type": "git",
-    "url": "git://github.com/hubot-scripts/hubot-log-to-pgsql.git"
+    "url": "https://github.com/danpoltawski/hubot-log-to-pgsql"
   },
   "bugs": {
-    "url": "https://github.com/hubot-scripts/hubot-log-to-pgsql/issues"
+    "url": "https://github.com/danpoltawski/hubot-log-to-pgsql/issues"
   },
   "dependencies": {
     "pg": "^6.1.2"
