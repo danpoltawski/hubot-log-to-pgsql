@@ -14,11 +14,14 @@ Postgres = require 'pg'
 
 module.exports = (robot) ->
     database_url = process.env.LOG_DB_URL
-    rooms_by_id = JSON.parse process.env.LOG_ROOMS
 
     if !database_url?
         throw new Error('LOG_DB_URL is not set.')
 
+    if !process.env.LOG_ROOMS?
+        throw new Error('LOG_ROOMS is not set.')
+
+    rooms_by_id = JSON.parse process.env.LOG_ROOMS
     if !rooms_by_id?
         throw new Error('LOG_ROOMS is not set.')
 
