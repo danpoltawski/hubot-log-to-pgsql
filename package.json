@@ -1,7 +1,7 @@
 {
   "name": "hubot-log-to-pgsql",
   "description": "A hubot script that stores to logs to pgsql",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Dan Poltawski <dan@moodle.com>",
   "license": "MIT",
   "keywords": "hubot, hubot-scripts",
