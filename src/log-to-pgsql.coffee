@@ -35,6 +35,8 @@ module.exports = (robot) ->
         else
             roomdata['id'] = roomid;
             rooms_by_name[roomdata['name']] = roomdata
+            robot.logger.info "log-to-pgsql starting logging on #{roomdata['name']} (#{roomdata['id']})}"
+
 
 
     client = new Postgres.Client(database_url)
