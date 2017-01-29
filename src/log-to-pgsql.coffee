@@ -52,7 +52,12 @@ module.exports = (robot) ->
         return if !msg.message.text || !msg.message.room
         return if !rooms_by_id[msg.message.room]
 
-        fullname = msg.message.user.username
+        if msg.message.user.username?
+            username = msg.message.user.username
+        else
+            username = msg.message.user.id
+
+        fullname = username
         if msg.message.user.first_name?
             fullname = msg.message.user.first_name
             fullname += " #{msg.message.user.last_name}" if msg.message.user.last_name
@@ -60,7 +65,7 @@ module.exports = (robot) ->
         robot.logger.debug "log-to-pgsql logging message to #{msg.message.room}"
         client.query "INSERT INTO chatlogs (room, username, fullname, message) VALUES ($1, $2, $3, $4)", [
             msg.message.room,
-            msg.message.user.username,
+            username,
             fullname,
             msg.message.text,
         ]
