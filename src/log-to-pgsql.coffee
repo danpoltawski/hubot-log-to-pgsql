@@ -44,8 +44,8 @@ module.exports = (robot) ->
 
     client = new Postgres.Client(database_url)
     client.connect()
-    client.query "CREATE TABLE IF NOT EXISTS chatlogs (messageid serial, room text, userfrom text, message text, timestamp timestamptz default current_timestamp)"
-    client.query "CREATE INDEX IF NOT EXISTS idx_query ON chatlogs (messageid, room)"
+    client.query "CREATE TABLE IF NOT EXISTS chatlogs (messageid serial, room text, userfrom text, message text, timestamp timestamptz(3) default current_timestamp)"
+    client.query "CREATE INDEX IF NOT EXISTS idx_time_room ON chatlogs (timestamp, room)"
     robot.logger.debug "log-to-pgsql connected to #{database_url}."
 
     robot.hear /(.+)/i, (msg) ->
@@ -77,15 +77,15 @@ module.exports = (robot) ->
 
         wheresql = "WHERE room = $1"
         params = [roomconfig["id"]]
-        if req.query.aftermessageid
-            wheresql = "#{wheresql} AND messageid > $2"
-            params.push req.query.aftermessageid
+        if req.query.aftertimestamp
+            wheresql = "#{wheresql} AND timestamp > $2"
+            params.push req.query.aftertimestamp
 
         # 10,0000 results, to set a limit, but won't be the normal case..
         sql = "SELECT messageid, userfrom, message, timestamp
                 FROM chatlogs
                 #{wheresql}
-                ORDER BY messageid LIMIT 10000"
+                ORDER BY timestamp LIMIT 10000"
 
         client.query sql, params, (err, result) ->
             if err
