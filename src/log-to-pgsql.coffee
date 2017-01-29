@@ -44,17 +44,24 @@ module.exports = (robot) ->
 
     client = new Postgres.Client(database_url)
     client.connect()
-    client.query "CREATE TABLE IF NOT EXISTS chatlogs (messageid serial, room text, userfrom text, message text, timestamp timestamptz(3) default current_timestamp)"
+    client.query "CREATE TABLE IF NOT EXISTS chatlogs (messageid serial, room text, username text, fullname text, message text, timestamp timestamptz(3) default current_timestamp)"
     client.query "CREATE INDEX IF NOT EXISTS idx_time_room ON chatlogs (timestamp, room)"
     robot.logger.debug "log-to-pgsql connected to #{database_url}."
 
     robot.hear /(.+)/i, (msg) ->
         return if !msg.message.text || !msg.message.room
         return if !rooms_by_id[msg.message.room]
+
+        fullname = msg.message.user.username
+        if msg.message.user.first_name?
+            fullname = msg.message.user.first_name
+            fullname += " #{msg.message.user.last_name}" if msg.message.user.last_name
+
         robot.logger.debug "log-to-pgsql logging message to #{msg.message.room}"
-        client.query "INSERT INTO chatlogs (room, userfrom, message) VALUES ($1, $2, $3)", [
+        client.query "INSERT INTO chatlogs (room, username, fullname, message) VALUES ($1, $2, $3, $4)", [
             msg.message.room,
             msg.message.user.username,
+            fullname,
             msg.message.text,
         ]
 
@@ -82,7 +89,7 @@ module.exports = (robot) ->
             params.push req.query.aftertimestamp
 
         # 10,0000 results, to set a limit, but won't be the normal case..
-        sql = "SELECT messageid, userfrom, message, timestamp
+        sql = "SELECT messageid, username, fullname, message, timestamp
                 FROM chatlogs
                 #{wheresql}
                 ORDER BY timestamp LIMIT 10000"
