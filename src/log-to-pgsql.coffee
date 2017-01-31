@@ -12,6 +12,27 @@
 #   Dan Poltawski <dan@moodle.com>
 Postgres = require 'pg'
 
+userFromTelegramUser = (telegramUser) ->
+    user = {}
+    if telegramUser.username?
+        user.username = telegramUser.username
+    else
+        user.username = telegramUser.id
+
+    user.fullname = user.username
+    if telegramUser.first_name?
+        user.fullname = telegramUser.first_name
+        user.fullname += " #{telegramUser.last_name}" if telegramUser.last_name
+
+    return user
+
+botuserFromTelegramAdaptor = (adaptor) ->
+    user = {}
+    user.username = adaptor.bot_username
+    user.fullname = adaptor.bot_firstname
+    return user
+
+
 module.exports = (robot) ->
     database_url = process.env.LOG_DB_URL
 
@@ -48,27 +69,34 @@ module.exports = (robot) ->
     client.query "CREATE INDEX IF NOT EXISTS idx_time_room ON chatlogs (timestamp, room)"
     robot.logger.debug "log-to-pgsql connected to #{database_url}."
 
-    robot.hear /(.+)/i, (msg) ->
-        return if !msg.message.text || !msg.message.room
-        return if !rooms_by_id[msg.message.room]
+    insertLogEntry = (room, user, message) ->
+        if !rooms_by_id[room]
+            robot.logger.info "log-to-pgsql ignoring message in room #{room}"
+            return
 
-        if msg.message.user.username?
-            username = msg.message.user.username
-        else
-            username = msg.message.user.id
-
-        fullname = username
-        if msg.message.user.first_name?
-            fullname = msg.message.user.first_name
-            fullname += " #{msg.message.user.last_name}" if msg.message.user.last_name
-
-        robot.logger.debug "log-to-pgsql logging message to #{msg.message.room}"
+        robot.logger.info "log-to-pgsql logging message to #{room}"
         client.query "INSERT INTO chatlogs (room, username, fullname, message) VALUES ($1, $2, $3, $4)", [
-            msg.message.room,
-            username,
-            fullname,
-            msg.message.text,
+            room,
+            user.username,
+            user.fullname,
+            message,
         ]
+
+    # Log recieved room messages..
+    robot.receiveMiddleware (context, next, done) ->
+        return if !context.response.message.text?
+
+        user = userFromTelegramUser context.response.message.user
+        insertLogEntry context.response.envelope.room, user, context.response.message.text
+        next(done)
+
+    # Log messages sent from the bot..
+    robot.responseMiddleware (context, next, done) ->
+        return unless context.plaintext?
+
+        user = botuserFromTelegramAdaptor context.response.robot.adapter
+        insertLogEntry context.response.envelope.room, user, context.strings.join('/n')
+        next(done)
 
     robot.router.post '/hubot/chatlogs/:roomname', (req, res) ->
         room = req.params.roomname
