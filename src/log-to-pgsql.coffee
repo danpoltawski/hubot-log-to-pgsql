@@ -2,8 +2,8 @@
 #   A hubot script that stores to logs to pgsql
 #
 # Configuration:
-#   LOG_DB_URL
-#   LOG_ROOMS
+#   HUBOT_LOG_DB_URL
+#   HUBOT_LOG_ROOMS
 #
 # Notes:
 #   The restrictions on log access are not designe to be only protection.
@@ -34,28 +34,28 @@ botuserFromTelegramAdaptor = (adaptor) ->
 
 
 module.exports = (robot) ->
-    database_url = process.env.LOG_DB_URL
+    database_url = process.env.HUBOT_LOG_DB_URL
 
     if !database_url?
-        throw new Error('LOG_DB_URL is not set.')
+        throw new Error('HUBOT_LOG_DB_URL is not set.')
 
-    if !process.env.LOG_ROOMS?
-        throw new Error('LOG_ROOMS is not set.')
+    if !process.env.HUBOT_LOG_ROOMS?
+        throw new Error('HUBOT_LOG_ROOMS is not set.')
 
-    rooms_by_id = JSON.parse process.env.LOG_ROOMS
+    rooms_by_id = JSON.parse process.env.HUBOT_LOG_ROOMS
     if !rooms_by_id?
-        throw new Error('LOG_ROOMS is not set.')
+        throw new Error('HUBOT_LOG_ROOMS is not set.')
 
     if !Object.keys(rooms_by_id).length
-        throw new Error('LOG_ROOMS is empty')
+        throw new Error('HUBOT_LOG_ROOMS is empty')
 
     rooms_by_name = {}
     for roomid, roomdata of rooms_by_id
-        throw new Error("LOG_ROOMS invalid") if !roomid
-        throw new Error("LOG_ROOMS invalid, name not set for room '#{roomid}'") if !roomdata['name']
-        throw new Error("LOG_ROOMS invalid, secret not for room '#{roomid}'") if !roomdata['secret']
+        throw new Error("HUBOT_LOG_ROOMS invalid") if !roomid
+        throw new Error("HUBOT_LOG_ROOMS invalid, name not set for room '#{roomid}'") if !roomdata['name']
+        throw new Error("HUBOT_LOG_ROOMS invalid, secret not for room '#{roomid}'") if !roomdata['secret']
         if rooms_by_name[roomdata['name']]
-            throw new Error("LOG_ROOMS invalid, duplicate room name '#{roomdata['name']}'")
+            throw new Error("HUBOT_LOG_ROOMS invalid, duplicate room name '#{roomdata['name']}'")
         else
             roomdata['id'] = roomid;
             rooms_by_name[roomdata['name']] = roomdata
